@@ -1,28 +1,35 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>test</title>
+    <title>Congress Class Furniture</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="style.css">
 
   </head>
   <body>
-    <p>Class Furniture</p>
+    <div class="container">
+
+    <h1>Congress Class Furniture</h1>
+    <p id="loading_text" style="display: block;">Loading...</p>
 
     <!--Add buttons to initiate auth sequence and sign out-->
-    <button id="authorize_button" style="display: none;">Sign In</button>
-    <button id="signout_button" style="display: none;">Sign Out</button>
-    <p></p>
+    <div class="">
+      <button id="authorize_button" style="display: none;">Sign In</button>
+      <button id="signout_button" style="display: none;">Sign Out</button>
+    </div>
+
+    <br/>
 
     <span id="finder" style="display:none;">
-      <label for="code">serial code:</label>
+      <label for="code">Serial Code:</label>
       <input type="text" id="code" name="code">
-      <button id="find_button" style="display: inline;">find</button>
+      <button id="find_button" style="display: inline;">Find</button>
     </span>
 
 
     <div id="content" style="display:none;">
       <p></p>
+      <p id="error_finding" style="display:none;">Serial code not found.</p>
       <table>
         <tr>
           <th>Serial number</th>
@@ -64,8 +71,7 @@
     </div>
 
 
-
-    <pre id="content"></pre>
+    </div>
 
 
     <script type="text/javascript">
@@ -86,6 +92,8 @@
       var code = document.getElementById('code')
       var finder = document.getElementById('finder')
       var contentBox = document.getElementById('content');
+      var errorText = document.getElementById('error_finding')
+      var loadingText = document.getElementById('loading_text')
 
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
@@ -102,6 +110,7 @@
        */
       function handleClientLoad() {
         gapi.load('client:auth2', initClient);
+
       }
 
       /**
@@ -134,6 +143,7 @@
        *  appropriately. After a sign-in, the API is called.
        */
       function updateSigninStatus(isSignedIn) {
+        loadingText.style.display = "none";
         if (isSignedIn) {
           authorizeButton.style.display = 'none';
           signoutButton.style.display = 'block';
@@ -202,6 +212,8 @@
 
         console.log(therange)
 
+        var found = 0
+
 
 
         gapi.client.sheets.spreadsheets.values.get({
@@ -215,6 +227,7 @@
             for (i = 0; i < range.values.length; i++) {
               var row = range.values[i];
               if (row[0] == serialCode){
+                found = 1
                 for (j = 0; j < row.length; j++){
                   document.getElementById(j).innerHTML = row[j]
                 }
@@ -224,8 +237,18 @@
           } else {
             appendPre('No data found.');
           }
+
+          console.log(found)
+
+          if (found == 0){
+            errorText.style.display = "block";
+          }
+          else{
+            errorText.style.display = "none";
+          }
         }, function(response) {
           appendPre('Error: ' + response.result.error.message);
+          errorText.style.display = "block";
         });
       }
 

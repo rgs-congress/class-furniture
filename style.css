@@ -1,4 +1,30 @@
 
+* {
+  font-family: Arial, sans-serif;
+}
+
+.container {
+
+  width: 43%;
+  margin: 0 auto;
+  margin-top: 50px;
+
+  padding: 0 80px;
+  border: 0;
+
+  text-align: center;
+  justify-content: center
+
+}
+
+@media (max-width:720px)
+{
+  .container {
+    width: 80%;
+    padding: 0 5%;
+  }
+}
+
 
 table, th, td {
   border: 1px solid black;
@@ -7,8 +33,13 @@ table, th, td {
 
 table {
   border-collapse: collapse;
+  margin: auto;
 }
 
 th, td{
   padding: 10px;
+}
+
+button {
+  margin: auto;
 }
