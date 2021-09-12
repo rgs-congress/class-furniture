@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>test</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css">
+
+  </head>
+  <body>
+    <p>Class Furniture</p>
+
+    <!--Add buttons to initiate auth sequence and sign out-->
+    <button id="authorize_button" style="display: none;">Sign In</button>
+    <button id="signout_button" style="display: none;">Sign Out</button>
+    <p></p>
+
+    <span id="finder" style="display:none;">
+      <label for="code">serial code:</label>
+      <input type="text" id="code" name="code">
+      <button id="find_button" style="display: inline;">find</button>
+    </span>
+
+
+    <div id="content" style="display:none;">
+      <p></p>
+      <table>
+        <tr>
+          <th>Serial number</th>
+          <td id="0"></td>
+        </tr>
+        <tr>
+          <th>Model Number</th>
+          <td id="1"></td>
+        </tr>
+        <tr>
+          <th>Current location</th>
+          <td id="2"></td>
+        </tr>
+        <tr>
+          <th>Most recent class using it</th>
+          <td id="3"></td>
+        </tr>
+        <tr>
+          <th>Previous Classes which have used it</th>
+          <td id="4"></td>
+        </tr>
+        <tr>
+          <th>Date of assembly</th>
+          <td id="5"></td>
+        </tr>
+        <tr>
+          <th>Current condition</th>
+          <td id="6"></td>
+        </tr>
+        <tr>
+          <th>Repair Date</th>
+          <td id="7"></td>
+        </tr>
+        <tr>
+          <th>Repair details</th>
+          <td id="8"></td>
+        </tr>
+      </table>
+    </div>
+
+
+
+    <pre id="content"></pre>
+
+
+    <script type="text/javascript">
+      // Client ID and API key from the Developer Console
+      var CLIENT_ID = '811083218802-lksneth236om6gldnabgqb6ov93s9m8f.apps.googleusercontent.com';
+      var API_KEY = 'AIzaSyCS1cpcPLJ6WvucoT0Yzx-ZcJrTzwxhebg';
+
+      // Array of API discovery doc URLs for APIs used by the quickstart
+      var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
+
+      // Authorization scopes required by the API; multiple scopes can be
+      // included, separated by spaces.
+      var SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly";
+
+      var authorizeButton = document.getElementById('authorize_button');
+      var signoutButton = document.getElementById('signout_button');
+      var findButton = document.getElementById('find_button')
+      var code = document.getElementById('code')
+      var finder = document.getElementById('finder')
+      var contentBox = document.getElementById('content');
+
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+
+      var serialCode = ""
+      const page = urlParams.get('page')
+      const num = urlParams.get('num')
+
+
+      // empty string
+
+      /**
+       *  On load, called to load the auth2 library and API client library.
+       */
+      function handleClientLoad() {
+        gapi.load('client:auth2', initClient);
+      }
+
+      /**
+       *  Initializes the API client library and sets up sign-in state
+       *  listeners.
+       */
+      function initClient() {
+        gapi.client.init({
+          apiKey: API_KEY,
+          clientId: CLIENT_ID,
+          discoveryDocs: DISCOVERY_DOCS,
+          scope: SCOPES
+        }).then(function () {
+          // Listen for sign-in state changes.
+          gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+
+          // Handle the initial sign-in state.
+          updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+          authorizeButton.onclick = handleAuthClick;
+          signoutButton.onclick = handleSignoutClick;
+          findButton.onclick = getValues;
+
+        }, function(error) {
+          appendPre(JSON.stringify(error, null, 2));
+        });
+      }
+
+      /**
+       *  Called when the signed in status changes, to update the UI
+       *  appropriately. After a sign-in, the API is called.
+       */
+      function updateSigninStatus(isSignedIn) {
+        if (isSignedIn) {
+          authorizeButton.style.display = 'none';
+          signoutButton.style.display = 'block';
+          finder.style.display = "block";
+
+        } else {
+          authorizeButton.style.display = 'block';
+          signoutButton.style.display = 'none';
+          finder.style.display = "none";
+          contentBox.style.display = "none";
+        }
+      }
+
+      /**
+       *  Sign in the user upon button click.
+       */
+      function handleAuthClick(event) {
+        gapi.auth2.getAuthInstance().signIn();
+      }
+
+      /**
+       *  Sign out the user upon button click.
+       */
+      function handleSignoutClick(event) {
+        gapi.auth2.getAuthInstance().signOut();
+      }
+
+      /**
+       * Append a pre element to the body containing the given message
+       * as its text node. Used to display the results of the API call.
+       *
+       * @param {string} message Text to be placed in pre element.
+       */
+      function appendPre(message) {
+        var pre = document.getElementById('content');
+        var textContent = document.createTextNode(message + '\n');
+        pre.appendChild(textContent);
+      }
+
+      /**
+       */
+      function getValues() {
+        //take in input from the box
+        serialCode = code.value
+
+        var pageCode = serialCode.slice(0, -3)
+        var pages = {
+          "FF-A-": "Fans",
+          "TF-B-": "Fans",
+          "S-C-": "Shelves",
+          "S-D-": "Shelves",
+          "S-E-": "Shelves",
+          "S-F-": "Shelves",
+          "R-G-": "Drying Rack",
+          "SV-": "Plants",
+          "MP-": "Plants",
+          "PL-": "Plants",
+          "DC-": "Plants",
+          "FL-": "Plants",
+          "MS-": "Plants",
+        }
+        var page = pages[pageCode]
+        console.log(page)
+
+        var therange = page + '!A2:H500'
+
+        console.log(therange)
+
+
+
+        gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: '1rVFR071GNndMiXi7vEZR6Lmnw5ZW6Dc0CXF5oRkSuNs',
+          range: therange,
+        }).then(function(response) {
+          var range = response.result;
+
+          if (range.values.length > 0) {
+
+            for (i = 0; i < range.values.length; i++) {
+              var row = range.values[i];
+              if (row[0] == serialCode){
+                for (j = 0; j < row.length; j++){
+                  document.getElementById(j).innerHTML = row[j]
+                }
+                contentBox.style.display = "block"
+              }
+            }
+          } else {
+            appendPre('No data found.');
+          }
+        }, function(response) {
+          appendPre('Error: ' + response.result.error.message);
+        });
+      }
+
+    </script>
+
+    <script async defer src="https://apis.google.com/js/api.js"
+      onload="this.onload=function(){};handleClientLoad()"
+      onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script>
+  </body>
+</html>
